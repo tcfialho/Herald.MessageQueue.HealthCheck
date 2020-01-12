@@ -1,0 +1,46 @@
+name: Herald.MessageQueue.HealthCheck
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  merge-master:
+
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged
+
+    steps:
+    - name: Checkout
+      if: github.event.pull_request.merged
+      uses: actions/checkout@v1
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.100'
+
+    - name: Build
+      run: dotnet build -c Release     
+
+    - name: Test
+      env:
+        SKIP: true
+        AWS_ACCESS_KEY_ID: guest
+        AWS_SECRET_KEY: guest
+        AWS_REGION: us-east-1
+        AWS_ENDPOINT: http://localhost:4576
+      run: |
+          docker-compose -f .docker/test-enviroment.yml up -d
+          echo "sleep 20"
+          sleep 20
+          dotnet test "--logger:junit;LogFilePath=./test-reports/results.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.xml" /p:Thereshold=80
+
+    - name: Publish Coverage
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      run: | 
+          curl -s https://codecov.io/bash > codecov
+          chmod +x codecov
+          find . -name "coverage.xml" -print -quit | xargs -i bash -c "cp {} coverage.xml;"
+          ./codecov -f "coverage.xml" -t $CODECOV_TOKEN
