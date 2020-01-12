@@ -1,0 +1,30 @@
+name: Herald.MessageQueue.HealthCheck.PullRequest
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:    
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.100'
+
+    - name: Build / Test
+      env:
+        SKIP: true
+        AWS_ACCESS_KEY_ID: guest
+        AWS_SECRET_KEY: guest
+        AWS_REGION: us-east-1
+        AWS_ENDPOINT: http://localhost:4576
+      run: | 
+          dotnet build -c Release
+          docker-compose -f .docker/test-enviroment.yml up -d
+          echo "sleep 20"
+          sleep 20
+          dotnet test "--logger:junit;LogFilePath=./test-reports/results.xml" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="coverage.xml" /p:Thereshold=80
