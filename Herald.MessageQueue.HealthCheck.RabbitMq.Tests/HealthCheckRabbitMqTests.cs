@@ -24,17 +24,16 @@ namespace Herald.MessageQueue.RabbitMq.Tests
             //Arrange
             var rabbitMqMock = new Mock<IModel>();
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddScoped(x => new MessageQueueOptions())
+                             .AddScoped(x => rabbitMqMock.Object)
+                             .AddHealthChecks()
+                             .AddRabbitMqCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
-            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Act
-            serviceCollection
-                .AddScoped(x => new MessageQueueOptions())
-                .AddScoped(x => rabbitMqMock.Object)
-                .AddHealthChecks()
-                .AddRabbitMqCheck<TestMessage>();
+            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
             Assert.IsType<HealthCheckRabbitMq>(healtCheck);

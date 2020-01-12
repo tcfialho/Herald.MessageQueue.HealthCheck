@@ -24,17 +24,16 @@ namespace Herald.MessageQueue.Kafka.Tests
             //Arrange
             var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddScoped(x => new MessageQueueOptions())
+                             .AddScoped(x => kafkaConsumerMock.Object)
+                             .AddHealthChecks()
+                             .AddKafkaCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
-            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Act
-            serviceCollection
-                .AddScoped(x => new MessageQueueOptions())
-                .AddScoped(x => kafkaConsumerMock.Object)
-                .AddHealthChecks()
-                .AddKafkaCheck<TestMessage>();
+            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
             Assert.IsType<HealthCheckKafka>(healtCheck);

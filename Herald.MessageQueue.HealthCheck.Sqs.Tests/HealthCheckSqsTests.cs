@@ -2,6 +2,7 @@
 using Amazon.SQS.Model;
 
 using Herald.MessageQueue.HealthCheck.Sqs;
+using Herald.MessageQueue.Sqs;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -27,16 +28,16 @@ namespace Herald.MessageQueue.RabbitMq.Tests
             //Arrange
             var amazonSqsMock = new Mock<IAmazonSQS>();
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddScoped(x => new MessageQueueOptions())
+                             .AddScoped(x => amazonSqsMock.Object)
+                             .AddHealthChecks()
+                             .AddSqsCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
-            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Act
-            serviceCollection
-                .AddScoped(x => amazonSqsMock.Object)
-                .AddHealthChecks()
-                .AddSqsCheck<TestMessage>();
+            var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
             Assert.IsType<HealthCheckSqs>(healtCheck);
