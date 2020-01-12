@@ -1,5 +1,7 @@
 ﻿using Confluent.Kafka;
 
+using Herald.MessageQueue.Kafka;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -12,7 +14,7 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.Kafka.Tests
+namespace Herald.MessageQueue.HealthCheck.Kafka.Tests
 {
     public class HealthCheckKafkaTests
     {

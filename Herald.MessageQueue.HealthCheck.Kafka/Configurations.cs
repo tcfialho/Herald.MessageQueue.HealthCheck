@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Herald.MessageQueue.Kafka
+namespace Herald.MessageQueue.HealthCheck.Kafka
 {
 
     public static class Configurations

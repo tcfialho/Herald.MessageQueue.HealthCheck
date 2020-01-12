@@ -1,7 +1,6 @@
 ﻿using Amazon.SQS;
 using Amazon.SQS.Model;
 
-using Herald.MessageQueue.HealthCheck.Sqs;
 using Herald.MessageQueue.Sqs;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.RabbitMq.Tests
+namespace Herald.MessageQueue.HealthCheck.Sqs.Tests
 {
     public class HealthCheckSqsTests
     {
