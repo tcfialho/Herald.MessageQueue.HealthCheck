@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Herald.MessageQueue.HealthCheck.RabbitMq;
+using Herald.MessageQueue.RabbitMq;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
@@ -12,7 +15,7 @@ using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.RabbitMq.Tests
+namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
 {
     public class HealthCheckRabbitMqTests
     {

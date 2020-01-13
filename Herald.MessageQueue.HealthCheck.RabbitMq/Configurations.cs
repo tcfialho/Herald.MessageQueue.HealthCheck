@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Herald.MessageQueue.RabbitMq
+namespace Herald.MessageQueue.HealthCheck.RabbitMq
 {
 
     public static class Configurations

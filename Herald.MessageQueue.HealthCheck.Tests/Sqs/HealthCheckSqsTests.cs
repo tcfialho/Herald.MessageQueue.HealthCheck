@@ -1,4 +1,8 @@
-﻿using Confluent.Kafka;
+﻿using Amazon.SQS;
+using Amazon.SQS.Model;
+
+using Herald.MessageQueue.HealthCheck.Sqs;
+using Herald.MessageQueue.Sqs;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,15 +10,15 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
-using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.Kafka.Tests
+namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
 {
-    public class HealthCheckKafkaTests
+    public class HealthCheckSqsTests
     {
         private class TestMessage : MessageBase { };
 
@@ -22,12 +26,12 @@ namespace Herald.MessageQueue.Kafka.Tests
         public void ShouldAddHealthCheck()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
+            var amazonSqsMock = new Mock<IAmazonSQS>();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
-                             .AddScoped(x => kafkaConsumerMock.Object)
+                             .AddScoped(x => amazonSqsMock.Object)
                              .AddHealthChecks()
-                             .AddKafkaCheck<TestMessage>();
+                             .AddSqsCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
@@ -36,17 +40,19 @@ namespace Herald.MessageQueue.Kafka.Tests
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckKafka>(healtCheck);
+            Assert.IsType<HealthCheckSqs>(healtCheck);
         }
 
         [Fact]
-        public async Task ShouldReturnHealthy()
+        public async Task ShouldBeHealthy()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
-            kafkaConsumerMock
-                .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()));
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+            var queueUrl = $"http://localhost:4576/event/{nameof(TestMessage)}.fifo";
+            var amazonSqsMock = new Mock<IAmazonSQS>();
+            amazonSqsMock
+                .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
+            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -60,14 +66,15 @@ namespace Herald.MessageQueue.Kafka.Tests
         }
 
         [Fact]
-        public async Task ShouldReturnUnhealthy()
+        public async Task ShouldBeUnhealthy()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
-            kafkaConsumerMock
-                .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()))
-                .Throws<Exception>();
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+            var queueUrl = string.Empty;
+            var amazonSqsMock = new Mock<IAmazonSQS>();
+            amazonSqsMock
+                .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
+            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)

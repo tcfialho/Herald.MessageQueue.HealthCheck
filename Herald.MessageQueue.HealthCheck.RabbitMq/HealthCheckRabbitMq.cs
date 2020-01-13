@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Herald.MessageQueue.RabbitMq;
+
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using RabbitMQ.Client;
 
@@ -6,7 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Herald.MessageQueue.RabbitMq
+namespace Herald.MessageQueue.HealthCheck.RabbitMq
 {
     public class HealthCheckRabbitMq : IHealthCheck
     {

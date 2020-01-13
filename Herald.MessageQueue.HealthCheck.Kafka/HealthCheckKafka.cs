@@ -1,12 +1,14 @@
 ﻿using Confluent.Kafka;
 
+using Herald.MessageQueue.Kafka;
+
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Herald.MessageQueue.Kafka
+namespace Herald.MessageQueue.HealthCheck.Kafka
 {
     public class HealthCheckKafka : IHealthCheck
     {
