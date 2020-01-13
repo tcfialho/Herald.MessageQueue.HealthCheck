@@ -1,4 +1,8 @@
-﻿using Herald.MessageQueue.RabbitMq;
+﻿using Amazon.SQS;
+using Amazon.SQS.Model;
+
+using Herald.MessageQueue.HealthCheck.Sqs;
+using Herald.MessageQueue.Sqs;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,17 +10,15 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
-using RabbitMQ.Client;
-
-using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.HealthCheck.RabbitMq.Tests
+namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
 {
-    public class HealthCheckRabbitMqTests
+    public class HealthCheckSqsTests
     {
         private class TestMessage : MessageBase { };
 
@@ -24,12 +26,12 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq.Tests
         public void ShouldAddHealthCheck()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
+            var amazonSqsMock = new Mock<IAmazonSQS>();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
-                             .AddScoped(x => rabbitMqMock.Object)
+                             .AddScoped(x => amazonSqsMock.Object)
                              .AddHealthChecks()
-                             .AddRabbitMqCheck<TestMessage>();
+                             .AddSqsCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
@@ -38,15 +40,19 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq.Tests
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckRabbitMq>(healtCheck);
+            Assert.IsType<HealthCheckSqs>(healtCheck);
         }
 
         [Fact]
         public async Task ShouldBeHealthy()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
-            var healthCheck = new HealthCheckRabbitMq(rabbitMqMock.Object, new MessageQueueOptions());
+            var queueUrl = $"http://localhost:4576/event/{nameof(TestMessage)}.fifo";
+            var amazonSqsMock = new Mock<IAmazonSQS>();
+            amazonSqsMock
+                .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
+            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -63,11 +69,12 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq.Tests
         public async Task ShouldBeUnhealthy()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
-            rabbitMqMock
-                .Setup(x => x.QueueDeclarePassive(It.IsAny<string>()))
-                .Throws<Exception>();
-            var healthCheck = new HealthCheckRabbitMq(rabbitMqMock.Object, new MessageQueueOptions());
+            var queueUrl = string.Empty;
+            var amazonSqsMock = new Mock<IAmazonSQS>();
+            amazonSqsMock
+                .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
+            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)

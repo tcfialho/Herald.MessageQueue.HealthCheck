@@ -1,6 +1,5 @@
-﻿using Confluent.Kafka;
-
-using Herald.MessageQueue.Kafka;
+﻿using Herald.MessageQueue.HealthCheck.RabbitMq;
+using Herald.MessageQueue.RabbitMq;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -8,15 +7,17 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
+using RabbitMQ.Client;
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.HealthCheck.Kafka.Tests
+namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
 {
-    public class HealthCheckKafkaTests
+    public class HealthCheckRabbitMqTests
     {
         private class TestMessage : MessageBase { };
 
@@ -24,12 +25,12 @@ namespace Herald.MessageQueue.HealthCheck.Kafka.Tests
         public void ShouldAddHealthCheck()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
+            var rabbitMqMock = new Mock<IModel>();
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
-                             .AddScoped(x => kafkaConsumerMock.Object)
+                             .AddScoped(x => rabbitMqMock.Object)
                              .AddHealthChecks()
-                             .AddKafkaCheck<TestMessage>();
+                             .AddRabbitMqCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
@@ -38,17 +39,15 @@ namespace Herald.MessageQueue.HealthCheck.Kafka.Tests
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckKafka>(healtCheck);
+            Assert.IsType<HealthCheckRabbitMq>(healtCheck);
         }
 
         [Fact]
-        public async Task ShouldReturnHealthy()
+        public async Task ShouldBeHealthy()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
-            kafkaConsumerMock
-                .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()));
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+            var rabbitMqMock = new Mock<IModel>();
+            var healthCheck = new HealthCheckRabbitMq(rabbitMqMock.Object, new MessageQueueOptions());
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -62,14 +61,14 @@ namespace Herald.MessageQueue.HealthCheck.Kafka.Tests
         }
 
         [Fact]
-        public async Task ShouldReturnUnhealthy()
+        public async Task ShouldBeUnhealthy()
         {
             //Arrange
-            var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
-            kafkaConsumerMock
-                .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()))
+            var rabbitMqMock = new Mock<IModel>();
+            rabbitMqMock
+                .Setup(x => x.QueueDeclarePassive(It.IsAny<string>()))
                 .Throws<Exception>();
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+            var healthCheck = new HealthCheckRabbitMq(rabbitMqMock.Object, new MessageQueueOptions());
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
