@@ -29,6 +29,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => kafkaConsumerMock.Object)
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
                              .AddKafkaCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -39,7 +40,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckKafka>(healtCheck);
+            Assert.IsType<HealthCheckKafka<TestMessage>>(healtCheck);
         }
 
         [Fact]
@@ -49,7 +50,11 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
             kafkaConsumerMock
                 .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()));
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
+            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+
+            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -70,7 +75,11 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             kafkaConsumerMock
                 .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()))
                 .Throws<Exception>();
-            var healthCheck = new HealthCheckKafka(kafkaConsumerMock.Object, new MessageQueueOptions());
+
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
+            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+
+            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
