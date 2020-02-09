@@ -5,9 +5,10 @@
 HealthCheck extensions designed for use with [Herald.MessageQueue](https://github.com/tcfialho/Herald.MessageQueue).
 
 # Installation Guide
-- Install-Package Herald.MessageQueue.HealthCheck.Kafka
+- Install-Package Herald.MessageQueue.HealthCheck.AzureStorageQueue
 - Install-Package Herald.MessageQueue.HealthCheck.RabbitMq
 - Install-Package Herald.MessageQueue.HealthCheck.Sqs
+- Install-Package Herald.MessageQueue.HealthCheck.Kafka
 
 # Samples
 - [Herald.MessageQueue.Samples](https://github.com/tcfialho/Herald.MessageQueue.Samples)
