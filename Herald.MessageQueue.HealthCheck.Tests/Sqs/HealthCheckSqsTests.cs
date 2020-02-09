@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 
 using Moq;
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => amazonSqsMock.Object)
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
                              .AddSqsCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -40,7 +42,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckSqs>(healtCheck);
+            Assert.IsType<HealthCheckSqs<TestMessage>>(healtCheck);
         }
 
         [Fact]
@@ -52,7 +54,9 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             amazonSqsMock
                 .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
-            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
+            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -74,7 +78,9 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             amazonSqsMock
                 .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
-            var healthCheck = new HealthCheckSqs(amazonSqsMock.Object);
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
+            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)

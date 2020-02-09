@@ -5,9 +5,9 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq
 
     public static class Configurations
     {
-        public static IHealthChecksBuilder AddRabbitMqCheck<T>(this IHealthChecksBuilder builder)
+        public static IHealthChecksBuilder AddRabbitMqCheck<T>(this IHealthChecksBuilder builder) where T : MessageBase
         {
-            return builder.AddCheck<HealthCheckRabbitMq>(typeof(T).Name);
+            return builder.AddCheck<HealthCheckRabbitMq<T>>(typeof(T).Name);
         }
     }
 }

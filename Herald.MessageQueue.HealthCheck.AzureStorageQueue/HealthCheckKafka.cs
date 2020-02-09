@@ -1,29 +1,28 @@
-﻿using Confluent.Kafka;
-
+﻿using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Herald.MessageQueue.HealthCheck.Kafka
+namespace Herald.MessageQueue.HealthCheck.AzureStorageQueue
 {
-    public class HealthCheckKafka<T> : IHealthCheck where T : MessageBase
+    public class HealthCheckAzureStorageQueue<T> : IHealthCheck where T : MessageBase
     {
-        private readonly IConsumer<Ignore, string> _consumer;
+        private readonly CloudQueueClient _cloudQueueClient;
         private readonly string _queueName;
 
-        public HealthCheckKafka(IConsumer<Ignore, string> consumer, IMessageQueueInfo messageQueueOptions)
+        public HealthCheckAzureStorageQueue(CloudQueueClient cloudQueueClient, IMessageQueueInfo messageQueueInfo)
         {
-            _consumer = consumer;
-            _queueName = messageQueueOptions.GetQueueName(typeof(T));
+            _cloudQueueClient = cloudQueueClient;
+            _queueName = messageQueueInfo.GetQueueName(typeof(T));
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             try
             {
-                _consumer.QueryWatermarkOffsets(new TopicPartition(_queueName, new Partition(0)), TimeSpan.FromSeconds(5));
+                var queue = _cloudQueueClient.GetQueueReference(_queueName);
 
                 return await Task.FromResult(HealthCheckResult.Healthy());
             }

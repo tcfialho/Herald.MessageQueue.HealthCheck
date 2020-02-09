@@ -1,23 +1,24 @@
-﻿using Herald.MessageQueue.HealthCheck.RabbitMq;
-using Herald.MessageQueue.RabbitMq;
+﻿using Herald.MessageQueue.AzureStorageQueue;
+using Herald.MessageQueue.HealthCheck.AzureStorageQueue;
 
+using Microsoft.Azure.Storage.Auth;
+using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 
 using Moq;
 
-using RabbitMQ.Client;
-
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 using Xunit;
 
-namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
+namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
 {
-    public class HealthCheckRabbitMqTests
+    public class HealthCheckAzureStorageQueueTests
     {
         private class TestMessage : MessageBase { };
 
@@ -25,13 +26,13 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
         public void ShouldAddHealthCheck()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
+            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), (StorageCredentials)null, (DelegatingHandler)null);
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
-                             .AddScoped(x => rabbitMqMock.Object)
+                             .AddScoped(x => clouldQueueClientMock.Object)
                              .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
-                             .AddRabbitMqCheck<TestMessage>();
+                             .AddAzureStorageQueueCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             var healthCheckServiceOptions = serviceProvider.GetService<IOptions<HealthCheckServiceOptions>>();
             var healthCheckRegistration = healthCheckServiceOptions.Value.Registrations.First();
@@ -40,19 +41,19 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             var healtCheck = healthCheckRegistration.Factory(serviceProvider);
 
             //Assert
-            Assert.IsType<HealthCheckRabbitMq<TestMessage>>(healtCheck);
+            Assert.IsType<HealthCheckAzureStorageQueue<TestMessage>>(healtCheck);
         }
 
         [Fact]
         public async Task ShouldBeHealthy()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
+            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), (StorageCredentials)null, (DelegatingHandler)null);
 
             var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, new MessageQueueOptions(), messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -69,15 +70,15 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
         public async Task ShouldBeUnhealthy()
         {
             //Arrange
-            var rabbitMqMock = new Mock<IModel>();
-            rabbitMqMock
-                .Setup(x => x.QueueDeclarePassive(It.IsAny<string>()))
+            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), (StorageCredentials)null, (DelegatingHandler)null);
+            clouldQueueClientMock
+                .Setup(x => x.GetQueueReference(It.IsAny<string>()))
                 .Throws<Exception>();
 
             var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, new MessageQueueOptions(), messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)

@@ -15,7 +15,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sqs", "Sqs", "{9FC2DE92-1E4
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Herald.MessageQueue.HealthCheck.Sqs", "Herald.MessageQueue.HealthCheck.Sqs\Herald.MessageQueue.HealthCheck.Sqs.csproj", "{FEFBC5C4-2DAD-423E-AEF2-8CFE87E7DC1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Herald.MessageQueue.HealthCheck.Tests", "Herald.MessageQueue.HealthCheck.Tests\Herald.MessageQueue.HealthCheck.Tests.csproj", "{CBCE4E6F-5F42-4126-89A8-554D33142A8C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Herald.MessageQueue.HealthCheck.Tests", "Herald.MessageQueue.HealthCheck.Tests\Herald.MessageQueue.HealthCheck.Tests.csproj", "{CBCE4E6F-5F42-4126-89A8-554D33142A8C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AzureStorageQueue", "AzureStorageQueue", "{B8CC9150-293E-40D1-90AE-837DCFD7E706}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Herald.MessageQueue.HealthCheck.AzureStorageQueue", "Herald.MessageQueue.HealthCheck.AzureStorageQueue\Herald.MessageQueue.HealthCheck.AzureStorageQueue.csproj", "{A40941F1-C7EE-4433-869B-36FF11589614}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +79,18 @@ Global
 		{CBCE4E6F-5F42-4126-89A8-554D33142A8C}.Release|x64.Build.0 = Release|Any CPU
 		{CBCE4E6F-5F42-4126-89A8-554D33142A8C}.Release|x86.ActiveCfg = Release|Any CPU
 		{CBCE4E6F-5F42-4126-89A8-554D33142A8C}.Release|x86.Build.0 = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|x64.Build.0 = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Debug|x86.Build.0 = Debug|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|x64.ActiveCfg = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|x64.Build.0 = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|x86.ActiveCfg = Release|Any CPU
+		{A40941F1-C7EE-4433-869B-36FF11589614}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,6 +99,7 @@ Global
 		{7511A94C-00A4-4B6F-BF83-3EBEC7821D00} = {DB68541B-ACFA-4751-ABBC-80606C63D35E}
 		{B4AABBDF-8B41-4A0E-B6B1-6A44E8098F92} = {142BE079-1051-45DE-848B-489DD43A1A28}
 		{FEFBC5C4-2DAD-423E-AEF2-8CFE87E7DC1E} = {9FC2DE92-1E45-4477-9D00-87F4136701A1}
+		{A40941F1-C7EE-4433-869B-36FF11589614} = {B8CC9150-293E-40D1-90AE-837DCFD7E706}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D956DC96-B377-4199-BE36-2010BDBFA2E0}

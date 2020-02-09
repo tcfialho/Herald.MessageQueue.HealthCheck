@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Herald.MessageQueue.HealthCheck.AzureStorageQueue\Herald.MessageQueue.HealthCheck.AzureStorageQueue.csproj" />
     <ProjectReference Include="..\Herald.MessageQueue.HealthCheck.Kafka\Herald.MessageQueue.HealthCheck.Kafka.csproj" />
     <ProjectReference Include="..\Herald.MessageQueue.HealthCheck.RabbitMq\Herald.MessageQueue.HealthCheck.RabbitMq.csproj" />
     <ProjectReference Include="..\Herald.MessageQueue.HealthCheck.Sqs\Herald.MessageQueue.HealthCheck.Sqs.csproj" />
