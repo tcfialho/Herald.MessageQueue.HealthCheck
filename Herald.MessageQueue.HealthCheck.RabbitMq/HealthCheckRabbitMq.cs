@@ -1,7 +1,4 @@
-﻿using Herald.MessageQueue.Extensions;
-using Herald.MessageQueue.RabbitMq;
-using Herald.MessageQueue.RabbitMq.Attributes;
-
+﻿
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using RabbitMQ.Client;
@@ -14,21 +11,29 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq
 {
     public class HealthCheckRabbitMq<T> : IHealthCheck where T : MessageBase
     {
+        private readonly int _healthCheckInterval;
+        private readonly DateTime _healthCheckTime;
+        private readonly HealthCheckResult _healthCheckResult;
+
         private readonly IModel _channel;
-        private readonly MessageQueueOptions _options;
         private readonly string _queueName;
         private readonly string _exchangeName;
 
-        public HealthCheckRabbitMq(IModel channel, MessageQueueOptions options, IMessageQueueInfo messageQueueInfo)
+        public HealthCheckRabbitMq(IModel channel, IQueueInfo queueInfo, IExchangeInfo exchangeInfo, int healthCheckInterval = 1)
         {
             _channel = channel;
-            _options = options;
-            _queueName = messageQueueInfo.GetQueueName(typeof(T));
-            _exchangeName = GetExchangeName(typeof(T));
+            _queueName = queueInfo.GetQueueName(typeof(T));
+            _exchangeName = exchangeInfo.GetExchangeName(typeof(T));
+            _healthCheckInterval = healthCheckInterval;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
+            if (!IsExpired())
+            {
+                return _healthCheckResult;
+            }
+
             try
             {
                 _channel.ExchangeDeclarePassive(_exchangeName);
@@ -42,9 +47,9 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq
             }
         }
 
-        private string GetExchangeName(Type type)
+        private bool IsExpired()
         {
-            return type.GetAttribute<ExchangeNameAttribute>()?.ExchangeName ?? string.Concat(type.Name, _options.ExchangeNameSufix);
+            return (_healthCheckInterval == 0 || _healthCheckTime.AddSeconds(_healthCheckInterval) <= DateTime.Now);
         }
     }
 }
