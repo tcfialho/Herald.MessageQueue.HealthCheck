@@ -10,17 +10,27 @@ namespace Herald.MessageQueue.HealthCheck.Kafka
 {
     public class HealthCheckKafka<T> : IHealthCheck where T : MessageBase
     {
+        private readonly int _healthCheckInterval;
+        private readonly DateTime _healthCheckTime;
+        private readonly HealthCheckResult _healthCheckResult;
+
         private readonly IConsumer<Ignore, string> _consumer;
         private readonly string _queueName;
 
-        public HealthCheckKafka(IConsumer<Ignore, string> consumer, IMessageQueueInfo messageQueueOptions)
+        public HealthCheckKafka(IConsumer<Ignore, string> consumer, ITopicInfo topicOptions, int healthCheckInterval = 1)
         {
             _consumer = consumer;
-            _queueName = messageQueueOptions.GetQueueName(typeof(T));
+            _queueName = topicOptions.GetTopicName(typeof(T));
+            _healthCheckInterval = healthCheckInterval;
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
+            if (!IsExpired())
+            {
+                return _healthCheckResult;
+            }
+
             try
             {
                 _consumer.QueryWatermarkOffsets(new TopicPartition(_queueName, new Partition(0)), TimeSpan.FromSeconds(5));
@@ -31,6 +41,11 @@ namespace Herald.MessageQueue.HealthCheck.Kafka
             {
                 return new HealthCheckResult(context.Registration.FailureStatus, exception: ex);
             }
+        }
+
+        private bool IsExpired()
+        {
+            return (_healthCheckInterval == 0 || _healthCheckTime.AddSeconds(_healthCheckInterval) <= DateTime.Now);
         }
     }
 }

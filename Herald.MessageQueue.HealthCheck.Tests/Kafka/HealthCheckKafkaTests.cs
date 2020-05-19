@@ -29,7 +29,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => kafkaConsumerMock.Object)
-                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
+                             .AddScoped<ITopicInfo, TopicInfo>()
                              .AddHealthChecks()
                              .AddKafkaCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -51,8 +51,8 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             kafkaConsumerMock
                 .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()));
 
-            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
-            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+            var messageQueueInfoMock = new Mock<ITopicInfo>();
+            messageQueueInfoMock.Setup(x => x.GetTopicName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
             var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
@@ -76,8 +76,8 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
                 .Setup(x => x.QueryWatermarkOffsets(It.IsAny<TopicPartition>(), It.IsAny<TimeSpan>()))
                 .Throws<Exception>();
 
-            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
-            messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
+            var messageQueueInfoMock = new Mock<ITopicInfo>();
+            messageQueueInfoMock.Setup(x => x.GetTopicName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
             var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
             var healthCheckContext = new HealthCheckContext()
