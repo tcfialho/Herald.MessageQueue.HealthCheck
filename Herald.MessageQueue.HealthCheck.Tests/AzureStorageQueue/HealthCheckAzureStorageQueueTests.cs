@@ -58,7 +58,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
             };
 
             //Act
-            var healthCheckResult = await healthCheck.CheckHealthAsync(healthCheckContext);
+            var healthCheckResult = await healthCheck.CheckHealthAsync(healthCheckContext, default);
 
             //Assert
             Assert.Equal(HealthStatus.Healthy, healthCheckResult.Status);
@@ -83,7 +83,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
             };
 
             //Act
-            var healthCheckResult = await healthCheck.CheckHealthAsync(healthCheckContext);
+            var healthCheckResult = await healthCheck.CheckHealthAsync(healthCheckContext, default);
 
             //Assert
             Assert.Equal(HealthStatus.Unhealthy, healthCheckResult.Status);

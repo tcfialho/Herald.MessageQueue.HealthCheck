@@ -1,26 +1,23 @@
-﻿using Microsoft.Azure.Storage.Queue;
+﻿
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Herald.MessageQueue.HealthCheck.AzureStorageQueue
+namespace Herald.MessageQueue.HealthCheck
 {
-    public class HealthCheckAzureStorageQueue<T> : IHealthCheck where T : MessageBase
+    public abstract class HealthCheckBase<T> : IHealthCheck where T : MessageBase
     {
         private readonly int _healthCheckInterval;
-        private readonly DateTime _healthCheckTime;
+        private DateTime _healthCheckTime;
         private HealthCheckResult _healthCheckResult;
 
-        private readonly CloudQueueClient _cloudQueueClient;
-        private readonly string _queueName;
-
-        public HealthCheckAzureStorageQueue(CloudQueueClient cloudQueueClient, IQueueInfo messageQueueInfo, int healthCheckInterval = 1)
+        public HealthCheckBase(int healthCheckInterval = 1)
         {
-            _cloudQueueClient = cloudQueueClient;
-            _queueName = messageQueueInfo.GetQueueName(typeof(T));
             _healthCheckInterval = healthCheckInterval;
+            _healthCheckTime = DateTime.MinValue;
+            _healthCheckResult = HealthCheckResult.Unhealthy();
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -29,12 +26,13 @@ namespace Herald.MessageQueue.HealthCheck.AzureStorageQueue
             {
                 return _healthCheckResult;
             }
+            _healthCheckTime = DateTime.Now;
 
             try
             {
-                var queue = _cloudQueueClient.GetQueueReference(_queueName);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                _healthCheckResult = HealthCheckResult.Healthy();
+                _healthCheckResult = await ProcessHealthCheck(context);
             }
             catch (Exception ex)
             {
@@ -44,7 +42,9 @@ namespace Herald.MessageQueue.HealthCheck.AzureStorageQueue
             return await Task.FromResult(_healthCheckResult);
         }
 
-        private bool IsExpired()
+        protected abstract Task<HealthCheckResult> ProcessHealthCheck(HealthCheckContext context);
+
+        protected bool IsExpired()
         {
             return (_healthCheckInterval == 0 || _healthCheckTime.AddSeconds(_healthCheckInterval) <= DateTime.Now);
         }
