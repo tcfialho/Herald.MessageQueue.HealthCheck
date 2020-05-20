@@ -56,7 +56,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
             var messageQueueInfoMock = new Mock<IQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
-            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -80,7 +80,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
             var messageQueueInfoMock = new Mock<IQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
-            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)

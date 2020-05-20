@@ -54,7 +54,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var messageQueueInfoMock = new Mock<ITopicInfo>();
             messageQueueInfoMock.Setup(x => x.GetTopicName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -79,7 +79,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             var messageQueueInfoMock = new Mock<ITopicInfo>();
             messageQueueInfoMock.Setup(x => x.GetTopicName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object);
+            var healthCheck = new HealthCheckKafka<TestMessage>(kafkaConsumerMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
