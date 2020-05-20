@@ -10,14 +10,13 @@ namespace Herald.MessageQueue.HealthCheck
     public abstract class HealthCheckBase<T> : IHealthCheck where T : MessageBase
     {
         private readonly int _healthCheckInterval;
-        private DateTime _healthCheckTime;
-        private HealthCheckResult _healthCheckResult;
 
-        public HealthCheckBase(int healthCheckInterval = 1)
+        private static DateTime _healthCheckTime = DateTime.MinValue;
+        private static HealthCheckResult _healthCheckResult = HealthCheckResult.Unhealthy();
+
+        public HealthCheckBase(int healthCheckInterval)
         {
             _healthCheckInterval = healthCheckInterval;
-            _healthCheckTime = DateTime.MinValue;
-            _healthCheckResult = HealthCheckResult.Unhealthy();
         }
 
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -26,11 +25,12 @@ namespace Herald.MessageQueue.HealthCheck
             {
                 return _healthCheckResult;
             }
-            _healthCheckTime = DateTime.Now;
 
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                _healthCheckTime = DateTime.Now;
 
                 _healthCheckResult = await ProcessHealthCheck(context);
             }
