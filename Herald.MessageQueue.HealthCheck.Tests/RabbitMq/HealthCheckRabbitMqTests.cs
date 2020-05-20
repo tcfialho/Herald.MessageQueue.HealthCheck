@@ -56,7 +56,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             var exchangeInfoMock = new Mock<IExchangeInfo>();
             exchangeInfoMock.Setup(x => x.GetExchangeName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object);
+            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -84,7 +84,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             var exchangeInfoMock = new Mock<IExchangeInfo>();
             exchangeInfoMock.Setup(x => x.GetExchangeName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object);
+            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
