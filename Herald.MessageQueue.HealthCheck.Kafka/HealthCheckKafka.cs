@@ -3,49 +3,26 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Herald.MessageQueue.HealthCheck.Kafka
 {
-    public class HealthCheckKafka<T> : IHealthCheck where T : MessageBase
+    public class HealthCheckKafka<T> : HealthCheckBase<T> where T : MessageBase
     {
-        private readonly int _healthCheckInterval;
-        private readonly DateTime _healthCheckTime;
-        private readonly HealthCheckResult _healthCheckResult;
-
         private readonly IConsumer<Ignore, string> _consumer;
         private readonly string _queueName;
 
-        public HealthCheckKafka(IConsumer<Ignore, string> consumer, ITopicInfo topicOptions, int healthCheckInterval = 1)
+        public HealthCheckKafka(IConsumer<Ignore, string> consumer, ITopicInfo topicOptions, int healthCheckInterval = 1) : base(healthCheckInterval)
         {
             _consumer = consumer;
             _queueName = topicOptions.GetTopicName(typeof(T));
-            _healthCheckInterval = healthCheckInterval;
         }
 
-        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        protected override async Task<HealthCheckResult> ProcessHealthCheck(HealthCheckContext context)
         {
-            if (!IsExpired())
-            {
-                return _healthCheckResult;
-            }
+            _consumer.QueryWatermarkOffsets(new TopicPartition(_queueName, new Partition(0)), TimeSpan.FromSeconds(5));
 
-            try
-            {
-                _consumer.QueryWatermarkOffsets(new TopicPartition(_queueName, new Partition(0)), TimeSpan.FromSeconds(5));
-
-                return await Task.FromResult(HealthCheckResult.Healthy());
-            }
-            catch (Exception ex)
-            {
-                return new HealthCheckResult(context.Registration.FailureStatus, exception: ex);
-            }
-        }
-
-        private bool IsExpired()
-        {
-            return (_healthCheckInterval == 0 || _healthCheckTime.AddSeconds(_healthCheckInterval) <= DateTime.Now);
+            return await Task.FromResult(HealthCheckResult.Healthy());
         }
     }
 }

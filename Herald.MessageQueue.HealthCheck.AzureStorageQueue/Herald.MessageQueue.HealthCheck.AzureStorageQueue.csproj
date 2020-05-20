@@ -8,5 +8,9 @@
     <PackageReference Include="Herald.MessageQueue.AzureStorageQueue" Version="4.0.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Herald.MessageQueue.HealthCheck\Herald.MessageQueue.HealthCheck.csproj" />
+  </ItemGroup>
   
 </Project>
