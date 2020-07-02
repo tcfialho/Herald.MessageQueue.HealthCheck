@@ -3,6 +3,7 @@
 using Herald.MessageQueue.HealthCheck.Kafka;
 using Herald.MessageQueue.Kafka;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -27,7 +28,10 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Kafka
             //Arrange
             var kafkaConsumerMock = new Mock<IConsumer<Ignore, string>>();
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddScoped(x => new MessageQueueOptions())
+            var config = new ConfigurationBuilder().Build();
+
+            serviceCollection.AddScoped<IConfiguration>(x => config)
+                             .AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => kafkaConsumerMock.Object)
                              .AddScoped<ITopicInfo, TopicInfo>()
                              .AddHealthChecks()
