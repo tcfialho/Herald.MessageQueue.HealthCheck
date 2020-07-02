@@ -1,6 +1,7 @@
 ﻿using Herald.MessageQueue.HealthCheck.RabbitMq;
 using Herald.MessageQueue.RabbitMq;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -27,7 +28,10 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             //Arrange
             var rabbitMqMock = new Mock<IModel>();
             var serviceCollection = new ServiceCollection();
-            serviceCollection.AddScoped(x => new MessageQueueOptions())
+            var config = new ConfigurationBuilder().Build();
+
+            serviceCollection.AddScoped<IConfiguration>(x => config)
+                             .AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => rabbitMqMock.Object)
                              .AddScoped<IQueueInfo, QueueInfo>()
                              .AddScoped<IExchangeInfo, ExchangeInfo>()
