@@ -1,4 +1,6 @@
 ﻿
+using Herald.MessageQueue.RabbitMq;
+
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using RabbitMQ.Client;
@@ -13,11 +15,11 @@ namespace Herald.MessageQueue.HealthCheck.RabbitMq
         private readonly string _queueName;
         private readonly string _exchangeName;
 
-        public HealthCheckRabbitMq(IModel channel, IQueueInfo queueInfo, IExchangeInfo exchangeInfo, int healthCheckInterval = 1) : base(healthCheckInterval)
+        public HealthCheckRabbitMq(IModel channel, IMessageQueueInfo info, int healthCheckInterval = 1) : base(healthCheckInterval)
         {
             _channel = channel;
-            _queueName = queueInfo.GetQueueName(typeof(T));
-            _exchangeName = exchangeInfo.GetExchangeName(typeof(T));
+            _queueName = info.GetQueueName(typeof(T));
+            _exchangeName = info.GetExchangeName(typeof(T));
         }
 
         protected override async Task<HealthCheckResult> ProcessHealthCheck(HealthCheckContext context)

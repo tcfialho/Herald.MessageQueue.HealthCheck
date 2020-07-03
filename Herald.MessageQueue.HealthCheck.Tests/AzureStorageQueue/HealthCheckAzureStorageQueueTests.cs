@@ -32,7 +32,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
             serviceCollection.AddScoped<IConfiguration>(x => config)
                              .AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => clouldQueueClientMock.Object)
-                             .AddScoped<IQueueInfo, QueueInfo>()                             
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()                             
                              .AddHealthChecks()
                              .AddAzureStorageQueueCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -52,7 +52,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
             //Arrange
             var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), null, null);
 
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
             var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object, 0);
@@ -77,7 +77,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
                 .Setup(x => x.GetQueueReference(It.IsAny<string>()))
                 .Throws<Exception>();
 
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
             var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object, 0);
