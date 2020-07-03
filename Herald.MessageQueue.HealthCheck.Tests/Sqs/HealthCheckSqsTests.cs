@@ -35,7 +35,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             serviceCollection.AddScoped<IConfiguration>(x => config)
                              .AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => amazonSqsMock.Object)
-                             .AddScoped<IQueueInfo, QueueInfo>()
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
                              .AddSqsCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -58,7 +58,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             amazonSqsMock
                 .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
             var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
@@ -82,7 +82,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.Sqs
             amazonSqsMock
                 .Setup(x => x.GetQueueUrlAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new GetQueueUrlResponse() { QueueUrl = queueUrl });
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
             var healthCheck = new HealthCheckSqs<TestMessage>(amazonSqsMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()

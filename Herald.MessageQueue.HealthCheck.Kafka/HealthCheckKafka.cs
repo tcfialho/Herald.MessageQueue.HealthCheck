@@ -1,5 +1,7 @@
 ﻿using Confluent.Kafka;
 
+using Herald.MessageQueue.Kafka;
+
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using System;
@@ -12,10 +14,10 @@ namespace Herald.MessageQueue.HealthCheck.Kafka
         private readonly IConsumer<Ignore, string> _consumer;
         private readonly string _queueName;
 
-        public HealthCheckKafka(IConsumer<Ignore, string> consumer, ITopicInfo topicOptions, int healthCheckInterval = 1) : base(healthCheckInterval)
+        public HealthCheckKafka(IConsumer<Ignore, string> consumer, IMessageQueueInfo info, int healthCheckInterval = 1) : base(healthCheckInterval)
         {
             _consumer = consumer;
-            _queueName = topicOptions.GetTopicName(typeof(T));
+            _queueName = info.GetTopicName(typeof(T));
         }
 
         protected override async Task<HealthCheckResult> ProcessHealthCheck(HealthCheckContext context)

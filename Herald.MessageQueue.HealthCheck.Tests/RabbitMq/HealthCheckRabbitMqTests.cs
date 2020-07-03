@@ -33,8 +33,7 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             serviceCollection.AddScoped<IConfiguration>(x => config)
                              .AddScoped(x => new MessageQueueOptions())
                              .AddScoped(x => rabbitMqMock.Object)
-                             .AddScoped<IQueueInfo, QueueInfo>()
-                             .AddScoped<IExchangeInfo, ExchangeInfo>()
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
                              .AddRabbitMqCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -54,13 +53,10 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
             //Arrange
             var rabbitMqMock = new Mock<IModel>();
 
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var exchangeInfoMock = new Mock<IExchangeInfo>();
-            exchangeInfoMock.Setup(x => x.GetExchangeName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
-
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object, 0);
+            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -82,13 +78,10 @@ namespace Herald.MessageQueue.HealthCheck.Tests.RabbitMq
                 .Setup(x => x.QueueDeclarePassive(It.IsAny<string>()))
                 .Throws<Exception>();
 
-            var messageQueueInfoMock = new Mock<IQueueInfo>();
+            var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var exchangeInfoMock = new Mock<IExchangeInfo>();
-            exchangeInfoMock.Setup(x => x.GetExchangeName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
-
-            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, exchangeInfoMock.Object, 0);
+            var healthCheck = new HealthCheckRabbitMq<TestMessage>(rabbitMqMock.Object, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
