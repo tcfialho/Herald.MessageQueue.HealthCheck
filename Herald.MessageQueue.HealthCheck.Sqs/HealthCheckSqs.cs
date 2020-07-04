@@ -16,7 +16,7 @@ namespace Herald.MessageQueue.HealthCheck.Sqs
         public HealthCheckSqs(IAmazonSQS amazonSQS, IMessageQueueInfo info, int healthCheckInterval = 1) : base(healthCheckInterval)
         {
             _amazonSqs = amazonSQS;
-            _queueUrl = info.GetQueueName(typeof(T)).TrimStart('/');
+            _queueUrl = info.GetQueueName(typeof(T));
         }
 
         protected override async Task<HealthCheckResult> ProcessHealthCheck(HealthCheckContext context)
