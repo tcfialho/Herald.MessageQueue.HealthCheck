@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Herald.MessageQueue.Kafka" Version="7.0.3" />
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="5.0.7" />
   </ItemGroup>
 
   <ItemGroup>
