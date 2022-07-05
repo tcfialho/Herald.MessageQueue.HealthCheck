@@ -1,7 +1,8 @@
-﻿using Herald.MessageQueue.AzureStorageQueue;
+﻿using Azure.Storage.Queues;
+using Azure;
+using Herald.MessageQueue.AzureStorageQueue;
 using Herald.MessageQueue.HealthCheck.AzureStorageQueue;
 
-using Microsoft.Azure.Storage.Queue;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -11,9 +12,11 @@ using Moq;
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Xunit;
+using Newtonsoft.Json;
 
 namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
 {
@@ -25,14 +28,30 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
         public void ShouldAddHealthCheck()
         {
             //Arrange
-            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), null, null);
+            var mockMessageReponse = new Mock<Response<bool>>();
+            mockMessageReponse
+                .SetupGet(m => m.Value).Returns(true)
+                .Verifiable();
+
+            var queueClientMock = new Mock<QueueClient>();
+            queueClientMock
+                .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockMessageReponse.Object)
+                .Verifiable();
+
+            var queueClientFactoryMock = new Mock<IQueueClientFactory>();
+            queueClientFactoryMock
+                .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(queueClientMock.Object)
+                .Verifiable();
+
             var serviceCollection = new ServiceCollection();
             var config = new ConfigurationBuilder().Build();
 
             serviceCollection.AddScoped<IConfiguration>(x => config)
                              .AddScoped(x => new MessageQueueOptions())
-                             .AddScoped(x => clouldQueueClientMock.Object)
-                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()                             
+                             .AddScoped(x => queueClientFactoryMock.Object)
+                             .AddScoped<IMessageQueueInfo, MessageQueueInfo>()
                              .AddHealthChecks()
                              .AddAzureStorageQueueCheck<TestMessage>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -50,12 +69,29 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
         public async Task ShouldBeHealthy()
         {
             //Arrange
-            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), null, null);
+            var mockMessageReponse = new Mock<Response<bool>>();
+            mockMessageReponse
+                .SetupGet(m => m.Value).Returns(true)
+                .Verifiable();
+
+            var queueClientMock = new Mock<QueueClient>();
+            queueClientMock
+                .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockMessageReponse.Object)
+                .Verifiable();
+
+            var queueClientFactoryMock = new Mock<IQueueClientFactory>();
+            queueClientFactoryMock
+                .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(queueClientMock.Object)
+                .Verifiable();
+
+            var messageQueueOptions = new MessageQueueOptions();
 
             var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object, 0);
+            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(queueClientFactoryMock.Object, messageQueueOptions, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
@@ -72,15 +108,29 @@ namespace Herald.MessageQueue.HealthCheck.Tests.AzureStorageQueue
         public async Task ShouldBeUnhealthy()
         {
             //Arrange
-            var clouldQueueClientMock = new Mock<CloudQueueClient>(MockBehavior.Loose, new Uri("http://localhost"), null, null);
-            clouldQueueClientMock
-                .Setup(x => x.GetQueueReference(It.IsAny<string>()))
-                .Throws<Exception>();
+            var mockMessageReponse = new Mock<Response<bool>>();
+            mockMessageReponse
+                .SetupGet(m => m.Value).Returns(false)
+                .Verifiable();
+
+            var queueClientMock = new Mock<QueueClient>();
+            queueClientMock
+                .Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(mockMessageReponse.Object)
+                .Verifiable();
+
+            var queueClientFactoryMock = new Mock<IQueueClientFactory>();
+            queueClientFactoryMock
+                .Setup(x => x.Create(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(queueClientMock.Object)
+                .Verifiable();
+
+            var messageQueueOptions = new MessageQueueOptions();
 
             var messageQueueInfoMock = new Mock<IMessageQueueInfo>();
             messageQueueInfoMock.Setup(x => x.GetQueueName(It.IsAny<Type>())).Returns(typeof(TestMessage).Name);
 
-            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(clouldQueueClientMock.Object, messageQueueInfoMock.Object, 0);
+            var healthCheck = new HealthCheckAzureStorageQueue<TestMessage>(queueClientFactoryMock.Object, messageQueueOptions, messageQueueInfoMock.Object, 0);
             var healthCheckContext = new HealthCheckContext()
             {
                 Registration = new HealthCheckRegistration(nameof(TestMessage), healthCheck, default, default)
